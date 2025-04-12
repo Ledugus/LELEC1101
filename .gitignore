@@ -1,3 +1,4 @@
-*.pdf
-*.png
-*.jpg
+output/*
+*/__pycache__/
+
+!output/plots/.gitkeep

@@ -10,21 +10,17 @@ def arcsinus(v, v_max):
     return -v_max * np.arcsin(v / v_max)
 
 
-def get_linear_interp(v: float, params: list[float], etages=range(4)):
+def get_linear_interp(v: float, v_max, r: list[float], etages=range(4)):
     for i in range(len(etages) - 1):
         if v <= Vd * (etages[i + 1]):
-            return -R * (
-                sum((v - Vd * etages[j]) / params[j + 1] for j in range(i + 1))
-            )
-    if v <= params[0]:
-        return -R * (
-            sum((v - Vd * etages[j]) / params[j + 1] for j in range(len(etages)))
-        )
+            return -R * (sum((v - Vd * etages[j]) / r[j] for j in range(i + 1)))
+    if v <= v_max:
+        return -R * (sum((v - Vd * etages[j]) / r[j] for j in range(len(etages))))
 
     return 0
 
 
-def optimize(crit="max", etages=range(4)):
+def optimize(crit="lstsq", etages=range(4), R=1000, Vd=0.7):
     """
     Optimize the parameters for the arcsinus function.
     """
@@ -34,13 +30,15 @@ def optimize(crit="max", etages=range(4)):
         arcs = arcsinus(v, params[0])
         if crit == "max":
             return max(
-                abs(get_linear_interp(v[i], params, etages) - arcs[i])
+                abs(get_linear_interp(v[i], params[0], params[1:], etages) - arcs[i])
                 for i in range(len(v))
             )
         elif crit == "abs":
             return np.sum(
                 [
-                    abs(get_linear_interp(v[i], params, etages) - arcs[i])
+                    abs(
+                        get_linear_interp(v[i], params[0], params[1:], etages) - arcs[i]
+                    )
                     for i in range(len(v))
                 ]
             )
@@ -48,7 +46,10 @@ def optimize(crit="max", etages=range(4)):
             return abs(
                 np.mean(
                     [
-                        (get_linear_interp(v[i], params, etages) - arcs[i])
+                        (
+                            get_linear_interp(v[i], params[0], params[1:], etages)
+                            - arcs[i]
+                        )
                         for i in range(len(v))
                     ]
                 )
@@ -57,7 +58,11 @@ def optimize(crit="max", etages=range(4)):
             return (
                 np.sum(
                     [
-                        (get_linear_interp(v[i], params, etages) - arcs[i]) ** 2
+                        (
+                            get_linear_interp(v[i], params[0], params[1:], etages)
+                            - arcs[i]
+                        )
+                        ** 2
                         for i in range(len(v))
                     ]
                 )
@@ -74,7 +79,7 @@ def optimize(crit="max", etages=range(4)):
         )
     )
     result = opt.minimize(objective, params0, bounds=bounds)
-    return result.fun, result.x
+    return result.fun, result.x[0], result.x[1:]
 
 
 def plot_results(etages):
@@ -83,28 +88,30 @@ def plot_results(etages):
     """
     plt.subplots(2, 2, figsize=(10, 8))
     i = 1
-    file_name = "conformateur/" + "-".join(map(str, etages)) + ".txt"
+    file_name = "output/" + "-".join(map(str, etages)) + ".txt"
     with open(file_name, "w") as f:
 
         for crit in ["max", "abs", "mean", "lstsq"]:
             plt.subplot(2, 2, i)
             i += 1
-            quality, params_opt = optimize(crit=crit, etages=etages)
-            v = np.linspace(0, params_opt[0], 1000)
-            arcs = arcsinus(v, params_opt[0])
+            quality, v_max, r_opt = optimize(crit=crit, etages=etages)
+            v = np.linspace(0, v_max, 1000)
+            arcs = arcsinus(v, v_max)
             f.write(
                 f"Criterion: {crit}, Quality: {quality}, Params:\n"
-                + ", ".join(map(str, params_opt))
+                + str(v_max)
+                + ", "
+                + ", ".join(map(str, r_opt))
                 + "\n"
             )
 
-            y = [get_linear_interp(v[i], params_opt, etages) for i in range(len(v))]
+            y = [get_linear_interp(v[i], v_max, r_opt, etages) for i in range(len(v))]
             plt.plot(v, arcs, label="Arcsin")
             plt.plot(v, y, label=f"Optimized {crit}")
             plt.legend()
             plt.title(f"Criterion: {crit}, Quality: {quality:.2f}")
             plt.grid()
-    plt.savefig("conformateur/" + "-".join(map(str, etages)) + ".png")
+    plt.savefig("output/plots/" + "-".join(map(str, etages)) + ".png")
     plt.show()
 
 
