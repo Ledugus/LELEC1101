@@ -39,4 +39,5 @@ def graph_deph():
     plt.show()
 
 
-graph_deph()
+if __name__ == "__main__":
+    graph_deph()
