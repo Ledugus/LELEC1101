@@ -11,14 +11,13 @@ def square(t, a, deph):
     return a * (np.sign(np.sin(np.pi * (t - deph))))
 
 
-def graph_deph():
+def graph_deph(path="output/plots/aires.pdf"):
     """Trace les graphes de u(t) et u(t+deph) pour deph=0, 0.25, 0.5 et 0.75."""
     t = np.linspace(0, 2, 1000)
 
     fig = plt.figure(figsize=(12, 8))
     for i, deph in enumerate([0, 0.25, 0.5, 0.75]):
         a = plt.subplot(2, 2, i + 1)
-        print(a)
         plt.title(f"$\phi={deph}*\pi$")
         plt.plot(t, square(t, 1, 0), label=r"$u_1$", linewidth=2)
         plt.plot(t, square(t, 1, deph), label=r"$u_2$", linewidth=2)
@@ -35,8 +34,7 @@ def graph_deph():
         plt.ylabel("$u(t)$")
         plt.legend(loc="upper right")
     plt.tight_layout()
-    plt.savefig("aires.pdf")
-    plt.show()
+    plt.savefig(path)
 
 
 if __name__ == "__main__":
