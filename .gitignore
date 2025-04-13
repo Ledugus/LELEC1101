@@ -1,4 +1,7 @@
 output/*
-*/__pycache__/
 
 !output/plots/.gitkeep
+       
+*/__pycache__/
+.venv
+.env

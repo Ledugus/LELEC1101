@@ -1,12 +1,12 @@
 """Dimensionnement du circuit complet"""
 
 # Importer les bibliothèques nécessaires
-import numpy as np
-import matplotlib.pyplot as plt
-
-from arcsin import optimize
 import tkinter as tk
 from tkinter import ttk
+
+import numpy as np
+
+from arcsin import optimize
 
 
 # Imposer les spécifications
