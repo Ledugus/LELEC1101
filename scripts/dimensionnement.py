@@ -12,12 +12,13 @@ from tkinter import ttk
 # Imposer les spécifications
 def impose_specs():
     specs = {
-        "f": 1870,  # Fréquence de l'oscillateur
+        "f": 1800,  # Fréquence de l'oscillateur
         "V_cc": 15,  # Alimentation
-        "V_max": 13.46,  # Tension maximale
-        "P_hp": 0.048,  # Puissance du haut-parleur
+        "V_max": 13.56,  # Tension maximale
+        "P_hp": 0.05,  # Puissance du haut-parleur
         "R_hp": 32,  # Résistance du haut-parleur
-        "etages": [0, 2, 3, 4],  # Etages de l'oscillateur
+        "etages": [0, 1, 2, 3],  # Etages de l'oscillateur
+        "f_coupure_moyenne": 80,  # Fréquence de coupure
     }
     return specs
 
@@ -68,13 +69,66 @@ def calculate_recepteur(specs):
 
     # Filtre passe-bande
 
+    C_PB1 = 10e-9
+    C_PB2 = 10e-9
+    w_0 = 2 * np.pi * f
+    w_1 = 2 * np.pi * f
+    eps = 1 / 6
+    R_PB1 = w_1 / (w_0**2 * C_PB1)
+    R_PB3 = R_PB1 / ((w_0 * R_PB1 * (C_PB1 + C_PB2) / (2 * eps)) - 1)
+    R_PB2 = (1 + (R_PB1 / R_PB3)) / (w_1 * C_PB2)
+
+    dim["R_PB1"] = R_PB1
+    dim["R_PB2"] = R_PB2
+    dim["R_PB3"] = R_PB3
+    dim["C_PB1"] = C_PB1
+    dim["C_PB2"] = C_PB2
+
+    new_w_0 = np.sqrt((1 + (R_PB1 / R_PB3)) / (R_PB1 * R_PB2 * C_PB1 * C_PB2))
+    new_w_1 = (1 + R_PB1 / R_PB3) / (R_PB2 * C_PB2)
+
+    print(w_0, new_w_0, new_w_0 / (2 * np.pi))
+
+    print(w_1, new_w_1, new_w_1 / (2 * np.pi))
+    Q = 3
+    H = 13
+    w0 = f * 2 * np.pi
+    C = 10e-9
+    R1 = Q / (w0 * H * C)
+    R2 = (Q / w0) * ((2 * C) / (C * C))
+    R3 = 1 / ((Q * w0 * (2 * C)) - ((w0 * H * C) / Q))
+    print(R1, R2, R3)
+
+    new_w_0 = np.sqrt((1 + (R1 / R3)) / (R1 * R2 * C_PB1 * C_PB2))
+    new_w_1 = (1 + R1 / R3) / (R2 * C_PB2)
+    print(w_0, new_w_0, new_w_0 / (2 * np.pi))
+
+    print(w_1, new_w_1, new_w_1 / (2 * np.pi))
     # Soustracteur
+
+    A1 = 1
+    A2 = 1
+    R_S1 = 10000
+    R_S2 = 10000
+    R_S3 = 10000
+    R_S4 = 10000
+    dim["R_S1"] = R_S1
+    dim["R_S2"] = R_S2
+    dim["R_S3"] = R_S3
+    dim["R_S4"] = R_S4
 
     # Valeur absolue
 
     # Moyenne
+    f_coup = specs["f_coupure_moyenne"]
+    C_MOY1 = 100e-9
+    C_MOY2 = 100e-9
+    # f = 1 / 2 pi R C
+    R_MOY1 = 1 / (2 * np.pi * f_coup * C_MOY1)
+    R_MOY2 = 2 * R_MOY1
 
-    # Renormalisation
+    dim["R_MOY1"] = R_MOY1
+    dim["R_MOY2"] = R_MOY2
 
     # Arcsinus
 
@@ -84,6 +138,18 @@ def calculate_recepteur(specs):
     dim["R_arcsin"] = 1000
     for i, indx in enumerate(specs["etages"]):
         dim[f"R_arcsin_{indx}"] = r_opt[i]
+
+    # Renormalisation
+    # R4(R1+R2)/R1(R3+R4) = 2 DV / V_MAX
+    # R2/R1 = DV / V_CC
+    R2 = 1000
+    R4 = 1000
+    R1 = R2 * V_cc / delta_V
+    R3 = R4 * (R1 + R2) * V_max / (R1 * (2 * delta_V)) - R4
+    dim["R_NORM1"] = R1
+    dim["R_NORM2"] = R2
+    dim["R_NORM3"] = R3
+    dim["R_NORM4"] = R4
 
     return dim
 

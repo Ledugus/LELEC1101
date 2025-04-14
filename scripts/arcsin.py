@@ -116,5 +116,5 @@ def plot_results(etages):
 
 
 if __name__ == "__main__":
-    test_etages = [0, 2, 3, 4]
+    test_etages = [0, 1, 2, 3]
     plot_results(test_etages)
