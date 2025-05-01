@@ -19,6 +19,8 @@ def impose_specs():
         "R_hp": 32,  # Résistance du haut-parleur
         "etages": [0, 1, 2, 3],  # Etages de l'oscillateur
         "f_coupure_moyenne": 80,  # Fréquence de coupure
+        "Q": 3,  # Facteur de qualité
+        "H": 13,  # Gain du filtre
     }
     return specs
 
@@ -60,6 +62,9 @@ def calculate_recepteur(specs):
     f = specs["f"]
     V_cc = specs["V_cc"]
     V_max = specs["V_max"]
+
+    # Micros
+
     R_M = 10e3
     C_M = 1e-6
 
@@ -71,12 +76,14 @@ def calculate_recepteur(specs):
 
     C_PB1 = 10e-9
     C_PB2 = 10e-9
-    w_0 = 2 * np.pi * f
-    w_1 = 2 * np.pi * f
-    eps = 1 / 6
-    R_PB1 = w_1 / (w_0**2 * C_PB1)
-    R_PB3 = R_PB1 / ((w_0 * R_PB1 * (C_PB1 + C_PB2) / (2 * eps)) - 1)
-    R_PB2 = (1 + (R_PB1 / R_PB3)) / (w_1 * C_PB2)
+
+    Q = specs["Q"]
+    H = specs["H"]
+    w0 = f * 2 * np.pi
+    C = 10e-9
+    R_PB1 = Q / (w0 * H * C)
+    R_PB2 = (Q / w0) * ((2 * C) / (C * C))
+    R_PB3 = 1 / ((Q * w0 * (2 * C)) - ((w0 * H * C) / Q))
 
     dim["R_PB1"] = R_PB1
     dim["R_PB2"] = R_PB2
@@ -84,26 +91,6 @@ def calculate_recepteur(specs):
     dim["C_PB1"] = C_PB1
     dim["C_PB2"] = C_PB2
 
-    new_w_0 = np.sqrt((1 + (R_PB1 / R_PB3)) / (R_PB1 * R_PB2 * C_PB1 * C_PB2))
-    new_w_1 = (1 + R_PB1 / R_PB3) / (R_PB2 * C_PB2)
-
-    print(w_0, new_w_0, new_w_0 / (2 * np.pi))
-
-    print(w_1, new_w_1, new_w_1 / (2 * np.pi))
-    Q = 3
-    H = 13
-    w0 = f * 2 * np.pi
-    C = 10e-9
-    R1 = Q / (w0 * H * C)
-    R2 = (Q / w0) * ((2 * C) / (C * C))
-    R3 = 1 / ((Q * w0 * (2 * C)) - ((w0 * H * C) / Q))
-    print(R1, R2, R3)
-
-    new_w_0 = np.sqrt((1 + (R1 / R3)) / (R1 * R2 * C_PB1 * C_PB2))
-    new_w_1 = (1 + R1 / R3) / (R2 * C_PB2)
-    print(w_0, new_w_0, new_w_0 / (2 * np.pi))
-
-    print(w_1, new_w_1, new_w_1 / (2 * np.pi))
     # Soustracteur
 
     A1 = 1
@@ -123,7 +110,6 @@ def calculate_recepteur(specs):
     f_coup = specs["f_coupure_moyenne"]
     C_MOY1 = 100e-9
     C_MOY2 = 100e-9
-    # f = 1 / 2 pi R C
     R_MOY1 = 1 / (2 * np.pi * f_coup * C_MOY1)
     R_MOY2 = 2 * R_MOY1
 
