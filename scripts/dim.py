@@ -14,7 +14,7 @@ def impose_specs():
     specs = {
         "f": 1800,  # Fréquence de l'oscillateur
         "V_cc": 15,  # Alimentation
-        "V_max": 13.56,  # Tension maximale
+        "V_sat": 13.56,  # Tension maximale
         "P_hp": 0.05,  # Puissance du haut-parleur
         "R_hp": 32,  # Résistance du haut-parleur
         "etages": [0, 1, 2, 3],  # Etages de l'oscillateur
@@ -29,7 +29,7 @@ def impose_specs():
 def calculate_emetteur(specs):
     f = specs["f"]
     V_cc = specs["V_cc"]
-    V_max = specs["V_max"]
+    V_sat = specs["V_sat"]
     p_hp = specs["P_hp"]
     r_hp = specs["R_hp"]
     etages = specs["etages"]
@@ -44,8 +44,8 @@ def calculate_emetteur(specs):
     C = 10e-9
     R3 = 12e3
 
-    # R2 / R3 * V_max = ampli_osc
-    R2 = (ampli_osc * R3) / V_max
+    # R2 / R3 * V_sat = ampli_osc
+    R2 = (ampli_osc * R3) / V_sat
     # f = R3 / (4 * R2 * R1 *C)
     R1 = R3 / (4 * R2 * f * C)
 
@@ -61,7 +61,7 @@ def calculate_emetteur(specs):
 def calculate_recepteur(specs):
     f = specs["f"]
     V_cc = specs["V_cc"]
-    V_max = specs["V_max"]
+    V_sat = specs["V_sat"]
 
     # Micros
 
@@ -131,7 +131,7 @@ def calculate_recepteur(specs):
     R2 = 1000
     R4 = 1000
     R1 = R2 * V_cc / delta_V
-    R3 = R4 * (R1 + R2) * V_max / (R1 * (2 * delta_V)) - R4
+    R3 = R4 * (R1 + R2) * V_sat / (R1 * (2 * delta_V)) - R4
     dim["R_NORM1"] = R1
     dim["R_NORM2"] = R2
     dim["R_NORM3"] = R3
