@@ -15,11 +15,13 @@ def impose_specs():
         "f": 1800,  # Fréquence de l'oscillateur
         "V_cc": 15,  # Alimentation
         "V_sat": 13.56,  # Tension maximale
+        "V_moy_max": 12,
+        "V_moy_min": 0.6,
         "P_hp": 0.05,  # Puissance du haut-parleur
         "R_hp": 32,  # Résistance du haut-parleur
         "etages": [0, 1, 2, 3],  # Etages de l'oscillateur
         "f_coupure_moyenne": 80,  # Fréquence de coupure
-        "Q": 3,  # Facteur de qualité
+        "Q": 3.15,  # Facteur de qualité
         "H": 13,  # Gain du filtre
     }
     return specs
@@ -62,6 +64,8 @@ def calculate_recepteur(specs):
     f = specs["f"]
     V_cc = specs["V_cc"]
     V_sat = specs["V_sat"]
+    V_moy_max = specs["V_moy_max"]
+    V_moy_min = specs["V_moy_min"]
 
     # Micros
 
@@ -126,12 +130,12 @@ def calculate_recepteur(specs):
         dim[f"R_arcsin_{indx}"] = r_opt[i]
 
     # Renormalisation
-    # R4(R1+R2)/R1(R3+R4) = 2 DV / V_MAX
-    # R2/R1 = DV / V_CC
-    R2 = 1000
-    R4 = 1000
+    # R4(R1+R2)/R1(R3+R4) = 2 * DV / (V_moy_max - V_moy_min)
+    # R2/R1 = (DV) / V_CC
+    R2 = 1200
+    R4 = 1200
     R1 = R2 * V_cc / delta_V
-    R3 = R4 * (R1 + R2) * V_sat / (R1 * (2 * delta_V)) - R4
+    R3 = R4 * (R1 + R2) * (V_moy_max - V_moy_min) / (R1 * (2 * delta_V)) - R4
     dim["R_NORM1"] = R1
     dim["R_NORM2"] = R2
     dim["R_NORM3"] = R3

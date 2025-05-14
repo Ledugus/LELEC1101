@@ -10,7 +10,7 @@ def arcsinus(v, v_max):
     return -v_max * np.arcsin(v / v_max)
 
 
-def get_linear_interp(v: float, v_max, r: list[float], etages=range(4)):
+def get_linear_interp(v: float, v_max, r: list[float], etages=range(4), R=1000):
     for i in range(len(etages) - 1):
         if v <= Vd * (etages[i + 1]):
             return -R * (sum((v - Vd * etages[j]) / r[j] for j in range(i + 1)))
@@ -30,7 +30,10 @@ def optimize(crit="lstsq", etages=range(4), R=1000, Vd=0.7):
         arcs = arcsinus(v, params[0])
         if crit == "max":
             return max(
-                abs(get_linear_interp(v[i], params[0], params[1:], etages) - arcs[i])
+                abs(
+                    get_linear_interp(v[i], params[0], params[1:], etages=etages)
+                    - arcs[i]
+                )
                 for i in range(len(v))
             )
         elif crit == "abs":
@@ -82,7 +85,7 @@ def optimize(crit="lstsq", etages=range(4), R=1000, Vd=0.7):
     return result.fun, result.x[0], result.x[1:]
 
 
-def plot_results(etages):
+def plot_optimization(etages):
     """
     Plot the results of the optimization.
     """
@@ -95,6 +98,9 @@ def plot_results(etages):
             plt.subplot(2, 2, i)
             i += 1
             quality, v_max, r_opt = optimize(crit=crit, etages=etages)
+            print(
+                f"Criterion: {crit}, Quality: {quality:.2f}, Params: {v_max}, {r_opt}"
+            )
             v = np.linspace(0, v_max, 1000)
             arcs = arcsinus(v, v_max)
             f.write(
@@ -115,6 +121,23 @@ def plot_results(etages):
     plt.show()
 
 
+def plot_solution(DV, r_opt, etages, R=1000):
+    v = np.linspace(0, DV, 1000)
+    arcs = arcsinus(v, DV)
+    y = [get_linear_interp(v[i], DV, r_opt, etages, R=R) for i in range(len(v))]
+
+    plt.plot(v, arcs, label="Arcsin")
+    plt.plot(v, y, label="Optimized")
+    plt.title(f"R0={R}, r_opt={r_opt}, DV={DV}")
+    plt.legend()
+    plt.show()
+
+
 if __name__ == "__main__":
+    r_opt = [5600, 56000, 10000, 1500]
+    etages = [0, 1, 2, 3]
+    R = 5600
     test_etages = [0, 1, 2, 3]
-    plot_results(test_etages)
+    DV = 2.3
+    plot_solution(DV, r_opt, etages, R=R)
+    # plot_optimization(test_etages)
