@@ -12,7 +12,7 @@ from arcsin import optimize
 # Imposer les spécifications
 def impose_specs():
     specs = {
-        "f": 1800,  # Fréquence de l'oscillateur
+        "f": 1380,  # Fréquence de l'oscillateur
         "V_cc": 15,  # Alimentation
         "V_sat": 13.56,  # Tension maximale
         "V_moy_max": 12,
@@ -66,13 +66,13 @@ def calculate_recepteur(specs):
     V_sat = specs["V_sat"]
     V_moy_max = specs["V_moy_max"]
     V_moy_min = specs["V_moy_min"]
+    dim = {}
 
     # Micros
 
     R_M = 10e3
     C_M = 1e-6
 
-    dim = {}
     dim["R_M"] = R_M
     dim["C_M"] = C_M
 
