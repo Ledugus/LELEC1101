@@ -2,4 +2,5 @@ output/*
 */__pycache__/
 
 !output/plots/.gitkeep
+.venv
 *.asc

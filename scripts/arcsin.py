@@ -89,7 +89,7 @@ def plot_optimization(etages):
     """
     Plot the results of the optimization.
     """
-    plt.subplots(2, 2, figsize=(10, 8))
+    plt.subplots(2, 2, figsize=(6.3, 4.5))
     i = 1
     file_name = "output/" + "-".join(map(str, etages)) + ".txt"
     with open(file_name, "w") as f:
@@ -117,7 +117,7 @@ def plot_optimization(etages):
             plt.legend()
             plt.title(f"Criterion: {crit}, Quality: {quality:.2f}")
             plt.grid()
-    plt.savefig("output/plots/" + "-".join(map(str, etages)) + ".png")
+    plt.savefig("output/plots/" + "-".join(map(str, etages)) + ".pdf")
     plt.show()
 
 
@@ -139,5 +139,5 @@ if __name__ == "__main__":
     R = 5600
     test_etages = [0, 1, 2, 3]
     DV = 2.3
-    plot_solution(DV, r_opt, etages, R=R)
-    # plot_optimization(test_etages)
+    # plot_solution(DV, r_opt, etages, R=R)
+    plot_optimization(test_etages)
